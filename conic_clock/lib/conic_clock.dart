@@ -136,7 +136,10 @@ class _ConicClockState extends State<ConicClock> {
                       right: 0,
                       child: Padding(
                         padding: const EdgeInsets.all(32),
-                        child: Opacity(child: Text(_location, textAlign: TextAlign.center, style: textTheme.caption), opacity: cityOpacity)
+                        child: Opacity(
+                            child: Text(_location, textAlign: TextAlign.center, style: textTheme.caption),
+                            opacity: 1.0
+                        )
                       ),
                     )
                   ],)
