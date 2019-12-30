@@ -27,14 +27,15 @@ class _ConicClockState extends State<ConicClock> {
   var _weather = '';
   var _time = '';
   var _halfDay = false;
+  var _lightYearMode = false; // debug flag to see fast time lapse
   Timer _timer;
 
-//  Color lightColor = Color(0xffAAD6C3);
-//  Color midColor = Color(0xff044B72);
-//  Color darkColor = Color(0xff021226);
-  Color lightColor = Color(0xffD6AABB);
-  Color midColor = Color(0xff5798FF);
-  Color darkColor = Color(0xffFF007A);
+  Color lightColor = Color(0xffAAD6C3); // sun/moon color
+  Color midColor = Color(0xff044B72);  // sky color
+  Color darkColor = Color(0xff021226); // ground color
+//  Color lightColor = Color(0xffD6AABB);
+//  Color midColor = Color(0xff5798FF);
+//  Color darkColor = Color(0xffFF007A);
 
   @override
   void initState() {
@@ -70,7 +71,32 @@ class _ConicClockState extends State<ConicClock> {
 
   void _updateTime() {
     setState(() {
-      _now = DateTime.now();
+      _now = !_lightYearMode ? DateTime.now() : DateTime.fromMillisecondsSinceEpoch((DateTime.now().millisecondsSinceEpoch * 4000).toInt());
+      double dayProgress = (_now.hour * 60*60*1000 + _now.minute * 60*1000 + _now.second * 1000 + _now.millisecond) / (24*60*60*1000);
+//      print(dayProgress);
+      //                0 midnight - 0.25 sunrise - 0.5 noon - 0.75 sunset - 1 midnight
+      // sun/moon color pale green - pale yellow - pale red - pale pink - pale blue : pale color, weak
+      // sky color      mid cyan - mid orange - pale blue - mid orange - mid cyan : vibrant color, primary
+      // ground color   dark blue - mid red - light white - mid red - dark blue : bold color, contrast
+
+      // weather & temp effect
+      // TBD
+
+      double lightColorH = ((0.5 - dayProgress) % 1.0) * 360.0;
+      double lightColorS = 0.3;
+      double lightColorV = 0.9;
+      lightColor = HSVColor.fromAHSV(1.0,lightColorH, lightColorS, lightColorV).toColor();
+
+      double midColorH = ((cos(dayProgress * radians(360)) / 2.0 + 0.5) % 1.0) * 50.0 + 200;
+      double midColorS = 0.7 + 0.3 * sin(dayProgress * radians(360));
+      double midColorV = 1.0;
+      midColor = HSVColor.fromAHSV(1.0,midColorH, midColorS, midColorV).toColor();
+
+      double darkColorH = ((dayProgress * 2.0 - 0.4) % 1.0) * 360.0;
+      double darkColorS = ((0.5 - dayProgress).abs() * 2) % 1.0;
+      double darkColorV = 0.1 + 0.2 * (sin(dayProgress * radians(360)) + 1);
+      darkColor = HSVColor.fromAHSV(1.0,darkColorH, darkColorS, darkColorV).toColor();
+
       _location = DateFormat.MMMd().format(_now) + '\n' + widget.model.location;
       _time = _halfDay ? DateFormat("hh:mm a").format(_now) : DateFormat("HH:mm").format(_now);
       _timer = Timer(
@@ -105,8 +131,8 @@ class _ConicClockState extends State<ConicClock> {
         )
     );
 
-    final secondsRadialRotation = (_now.second * 1000.0 + _now.millisecond) * radiansPerMilliSeconds - radians(90);
-    final cityOpacity = (cos((_now.second * 1000.0 + _now.millisecond) * radiansPerMilliSeconds + radians(180)) + 1) / 2.0;
+    final radialRotation = _lightYearMode ? 0.5 : (_now.second * 1000.0 + _now.millisecond) * radiansPerMilliSeconds - radians(90);
+    final radialRotationSin = sin(radialRotation);
 
 
     return Semantics.fromProperties(
@@ -120,8 +146,8 @@ class _ConicClockState extends State<ConicClock> {
               decoration: BoxDecoration(
                   gradient: SweepGradient(
                     colors: [lightColor.withAlpha(255), midColor.withAlpha(255), darkColor.withAlpha(255)],
-                    stops: [0.0 + cityOpacity * 0.0001, 0.5, 1],
-                    transform: GradientRotation(secondsRadialRotation),
+                    stops: [0.0 + radialRotationSin * 0.0001, 0.5, 1],
+                    transform: GradientRotation(radialRotation),
                   )
               ),
               child: new Stack(children: <Widget>
@@ -133,7 +159,7 @@ class _ConicClockState extends State<ConicClock> {
                           return SweepGradient(
                             colors: [darkColor.withAlpha(255),Color(0x00000000),Color(0x00000000),lightColor.withAlpha(255)],
                             stops: [0.0, 0.2, 0.8, 1],
-                            transform: GradientRotation(secondsRadialRotation),
+                            transform: GradientRotation(radialRotation),
                           ).createShader(Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight));
                         },
                         child: Container(
@@ -170,7 +196,7 @@ class _ConicClockState extends State<ConicClock> {
                           return SweepGradient(
                             colors: [darkColor.withAlpha(255),Color(0x00000000),Color(0x00000000),lightColor.withAlpha(255)],
                             stops: [0.1, 0.3, 0.7, 0.9],
-                            transform: GradientRotation(secondsRadialRotation),
+                            transform: GradientRotation(radialRotation),
                           ).createShader(Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight));
                         },
                         child: Container(
