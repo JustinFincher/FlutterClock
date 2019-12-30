@@ -27,7 +27,7 @@ class _ConicClockState extends State<ConicClock> {
   var _weather = '';
   var _time = '';
   var _halfDay = false;
-  var _lightYearMode = false; // debug flag to see fast time lapse
+  var _lightYearMode = true; // debug flag to see fast time lapse
   Timer _timer;
 
   Color lightColor = Color(0xffAAD6C3); // sun/moon color
@@ -131,7 +131,7 @@ class _ConicClockState extends State<ConicClock> {
         )
     );
 
-    final radialRotation = _lightYearMode ? 0.5 : (_now.second * 1000.0 + _now.millisecond) * radiansPerMilliSeconds - radians(90);
+    final radialRotation = _lightYearMode ? (DateTime.now().second * 1000.0 + DateTime.now().millisecond) * radiansPerMilliSeconds - radians(90) : (_now.second * 1000.0 + _now.millisecond) * radiansPerMilliSeconds - radians(90);
     final radialRotationSin = sin(radialRotation);
 
 
