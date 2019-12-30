@@ -120,7 +120,7 @@ class _ConicClockState extends State<ConicClock> {
             Positioned(
               child:
               ShaderMask(
-                  blendMode: BlendMode.srcIn,  // Add this
+                  blendMode: BlendMode.srcATop,  // Add this
                   shaderCallback: (Rect bounds) {
                     return SweepGradient(
                         colors:colorsReversed,
@@ -138,8 +138,20 @@ class _ConicClockState extends State<ConicClock> {
                         padding: const EdgeInsets.all(32),
                         child: Opacity(
                             child: Text(_location, textAlign: TextAlign.center, style: textTheme.caption),
-                            opacity: 1.0
+                            opacity: cityOpacity
                         )
+                      ),
+                    ),
+                    Positioned(
+                      top:0,
+                      left: 0,
+                      right: 0,
+                      child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Opacity(
+                              child: Text(_location, textAlign: TextAlign.center, style: textTheme.caption),
+                              opacity: 1.0 - cityOpacity
+                          )
                       ),
                     )
                   ],)
