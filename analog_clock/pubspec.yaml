@@ -18,3 +18,12 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: IBM Plex Mono
+      fonts:
+        - asset: assets/fonts/IBM-Plex-Mono/IBMPlexMono-Bold.ttf
+        - asset: assets/fonts/IBM-Plex-Mono/IBMPlexMono-Light.ttf
+        - asset: assets/fonts/IBM-Plex-Mono/IBMPlexMono-ExtraLight.ttf
+        - asset: assets/fonts/IBM-Plex-Mono/IBMPlexMono-ExtraLightItalic.ttf
+        - asset: assets/fonts/IBM-Plex-Mono/IBMPlexMono-Regular.ttf
+        - asset: assets/fonts/IBM-Plex-Mono/IBMPlexMono-Text.ttf
