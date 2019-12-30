@@ -82,19 +82,19 @@ class _ConicClockState extends State<ConicClock> {
       // weather & temp effect
       // TBD
 
-      double lightColorH = ((0.5 - dayProgress) % 1.0) * 360.0;
-      double lightColorS = 0.3;
+      double lightColorH = (cos(dayProgress * radians(360)) % 1.0) * 360.0;
+      double lightColorS = 0.12 + (sin(dayProgress * radians(360)) % 1.0) * 0.05;
       double lightColorV = 0.9;
       lightColor = HSVColor.fromAHSV(1.0,lightColorH, lightColorS, lightColorV).toColor();
 
-      double midColorH = ((cos(dayProgress * radians(360)) / 2.0 + 0.5) % 1.0) * 50.0 + 200;
-      double midColorS = 0.7 + 0.3 * sin(dayProgress * radians(360));
+      double midColorH = sin(dayProgress * radians(1080)) * 30.0 + 220;
+      double midColorS = 0.7 + 0.2 * sin(dayProgress * radians(720));
       double midColorV = 1.0;
       midColor = HSVColor.fromAHSV(1.0,midColorH, midColorS, midColorV).toColor();
 
       double darkColorH = ((dayProgress * 2.0 - 0.4) % 1.0) * 360.0;
       double darkColorS = ((0.5 - dayProgress).abs() * 1.2) % 1.0;
-      double darkColorV = 0.2 + 0.1 * (sin(dayProgress * radians(360)));
+      double darkColorV = 0.15 + 0.1 * (sin(dayProgress * radians(360)));
       darkColor = HSVColor.fromAHSV(1.0,darkColorH, darkColorS, darkColorV).toColor();
 
       _location = DateFormat.MMMd().format(_now) + '\n' + widget.model.location;
@@ -115,7 +115,7 @@ class _ConicClockState extends State<ConicClock> {
     textTheme = textTheme.copyWith(
         subhead: textTheme.subhead.copyWith(
             fontFamily: "IBM Plex Sans Condensed",
-            fontSize: 100,
+            fontSize: 120,
             letterSpacing: 6,
             fontWeight: FontWeight.w100,
             fontStyle: FontStyle.italic,
@@ -224,26 +224,6 @@ class _ConicClockState extends State<ConicClock> {
                         )
                     )
                 ),
-//                Positioned(
-//                    child:
-//                    ShaderMask(
-//                        shaderCallback: (Rect bounds) {
-//                          return SweepGradient(
-//                            colors: [Color(0x00AAD6C3),Color(0xFFFFFFFF),Color(0xFFFFFFFF),Color(0x00021226)],
-//                            stops: [0.05, 0.35, 0.65, 0.95],
-//                            transform: GradientRotation(secondsRadialRotation),
-//                          ).createShader(Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight));
-//                        },
-//                        child: Container(
-//                            width: constraints.maxWidth,
-//                            height: constraints.maxHeight,
-//                            child: Stack(children: <Widget>[
-//                              Center(child: Text(_time, textAlign: TextAlign.center, style: textTheme.title))
-//                            ],
-//                            )
-//                        )
-//                    )
-//                ),
               ],
               ),
             );

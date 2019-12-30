@@ -22,6 +22,9 @@ flutter:
     - family: IBM Plex Sans Condensed
       fonts:
         - asset: assets/fonts/IBM-Plex-Sans-Condensed/IBMPlexSansCondensed-ExtraLight.ttf
+        - asset: assets/fonts/IBM-Plex-Sans-Condensed/IBMPlexSansCondensed-ExtraLightItalic.ttf
+        - asset: assets/fonts/IBM-Plex-Sans-Condensed/IBMPlexSansCondensed-Text.ttf
+        - asset: assets/fonts/IBM-Plex-Sans-Condensed/IBMPlexSansCondensed-TextItalic.ttf
     - family: IBM Plex Mono
       fonts:
         - asset: assets/fonts/IBM-Plex-Mono/IBMPlexMono-Bold.ttf
