@@ -27,7 +27,7 @@ class _ConicClockState extends State<ConicClock> {
   var _weather = '';
   var _time = '';
   var _halfDay = false;
-  var _lightYearMode = true; // debug flag to see fast time lapse
+  var _lightYearMode = false; // debug flag to see fast time lapse
   Timer _timer;
 
   Color lightColor = Color(0xffAAD6C3); // sun/moon color
@@ -93,8 +93,8 @@ class _ConicClockState extends State<ConicClock> {
       midColor = HSVColor.fromAHSV(1.0,midColorH, midColorS, midColorV).toColor();
 
       double darkColorH = ((dayProgress * 2.0 - 0.4) % 1.0) * 360.0;
-      double darkColorS = ((0.5 - dayProgress).abs() * 2) % 1.0;
-      double darkColorV = 0.1 + 0.2 * (sin(dayProgress * radians(360)) + 1);
+      double darkColorS = ((0.5 - dayProgress).abs() * 1.2) % 1.0;
+      double darkColorV = 0.2 + 0.1 * (sin(dayProgress * radians(360)));
       darkColor = HSVColor.fromAHSV(1.0,darkColorH, darkColorS, darkColorV).toColor();
 
       _location = DateFormat.MMMd().format(_now) + '\n' + widget.model.location;
