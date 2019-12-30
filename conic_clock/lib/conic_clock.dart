@@ -24,7 +24,17 @@ class ConicClock extends StatefulWidget {
 class _ConicClockState extends State<ConicClock> {
   var _now = DateTime.now();
   var _location = '';
+  var _weather = '';
+  var _time = '';
+  var _halfDay = false;
   Timer _timer;
+
+//  Color lightColor = Color(0xffAAD6C3);
+//  Color midColor = Color(0xff044B72);
+//  Color darkColor = Color(0xff021226);
+  Color lightColor = Color(0xffD6AABB);
+  Color midColor = Color(0xff5798FF);
+  Color darkColor = Color(0xffFF007A);
 
   @override
   void initState() {
@@ -53,13 +63,16 @@ class _ConicClockState extends State<ConicClock> {
 
   void _updateModel() {
     setState(() {
-      _location = widget.model.location;
+      _halfDay = !widget.model.is24HourFormat;
+      _weather = '${widget.model.temperatureString} (${widget.model.low}-${widget.model.high})' + '\n' + widget.model.weatherString.toUpperCase();
     });
   }
 
   void _updateTime() {
     setState(() {
       _now = DateTime.now();
+      _location = DateFormat.MMMd().format(_now) + '\n' + widget.model.location;
+      _time = _halfDay ? DateFormat("hh:mm a").format(_now) : DateFormat("HH:mm").format(_now);
       _timer = Timer(
         Duration(milliseconds: 30),
         _updateTime,
@@ -74,22 +87,25 @@ class _ConicClockState extends State<ConicClock> {
 
     TextTheme textTheme = Theme.of(context).textTheme;
     textTheme = textTheme.copyWith(
-        body1: textTheme.body1.copyWith(fontFamily: "IBM Plex Mono"),
-        caption: textTheme.caption.copyWith
-          (
+        subhead: textTheme.subhead.copyWith(
+            fontFamily: "IBM Plex Sans Condensed",
+            fontSize: 100,
+            letterSpacing: 6,
+            fontWeight: FontWeight.w100,
+            fontStyle: FontStyle.italic,
+            color: Colors.white
+        ),
+        caption: textTheme.caption.copyWith(
             fontFamily: "IBM Plex Mono",
             fontSize: 40,
             fontWeight: FontWeight.w100,
             letterSpacing: 3,
-            fontStyle: FontStyle.italic
+            fontStyle: FontStyle.italic,
+            color: Colors.white
         )
     );
 
-    List<Color> colors = [Color(0xffAAD6C3),Color(0xff044B72),Color(0xff021226)];
-    List<Color> colorsReversed = [Color(0xff021226),Color(0xff044B72),Color(0xffAAD6C3)];
-
     final secondsRadialRotation = (_now.second * 1000.0 + _now.millisecond) * radiansPerMilliSeconds - radians(90);
-    final hoursRadialRotation = (_now.hour) * radiansPerHours - radians(90);
     final cityOpacity = (cos((_now.second * 1000.0 + _now.millisecond) * radiansPerMilliSeconds + radians(180)) + 1) / 2.0;
 
 
@@ -98,70 +114,114 @@ class _ConicClockState extends State<ConicClock> {
           label: 'Analog clock with time $time',
           value: time,
         ),
-        child:
-        Container(
-          // Add box decoration
-          decoration: BoxDecoration(
-            // Box decoration takes a gradient
-              gradient: SweepGradient(
-                  colors: colors,
-                  stops: [0.0, 0.5, 1],
-                  transform: GradientRotation(secondsRadialRotation),
-                  startAngle: secondsRadialRotation * 0.000000000000001
-              )
-          ),
-          child: new Stack(children: <Widget>[
-//            BackdropFilter(
-//              filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-//              child: Container(
-//                color: Colors.black.withOpacity(0),
-//              ),
-//            ),
-            Positioned(
-              child:
-              ShaderMask(
-                  blendMode: BlendMode.srcATop,  // Add this
-                  shaderCallback: (Rect bounds) {
-                    return SweepGradient(
-                        colors:colorsReversed,
-                        stops: [0.0, 0.5, 1],
-                        transform: GradientRotation(secondsRadialRotation),
-                        startAngle: secondsRadialRotation * 0.000000000000001
-                    ).createShader(bounds);
-                  },
-                  child: Stack(children: <Widget>[
-                    Positioned(
-                      bottom:0,
-                      left: 0,
-                      right: 0,
-                      child: Padding(
-                        padding: const EdgeInsets.all(32),
-                        child: Opacity(
-                            child: Text(_location, textAlign: TextAlign.center, style: textTheme.caption),
-                            opacity: cityOpacity
-                        )
-                      ),
-                    ),
-                    Positioned(
-                      top:0,
-                      left: 0,
-                      right: 0,
-                      child: Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Opacity(
-                              child: Text(_location, textAlign: TextAlign.center, style: textTheme.caption),
-                              opacity: 1.0 - cityOpacity
-                          )
-                      ),
-                    )
-                  ],)
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Container(
+              decoration: BoxDecoration(
+                  gradient: SweepGradient(
+                    colors: [lightColor.withAlpha(255), midColor.withAlpha(255), darkColor.withAlpha(255)],
+                    stops: [0.0 + cityOpacity * 0.0001, 0.5, 1],
+                    transform: GradientRotation(secondsRadialRotation),
+                  )
               ),
-              left: 0,
-              right: 0,
-              top: 0,
-              bottom: 0,),
-          ],
-          ),
+              child: new Stack(children: <Widget>
+              [
+                Positioned(
+                    child:
+                    ShaderMask(
+                        shaderCallback: (Rect bounds) {
+                          return SweepGradient(
+                            colors: [darkColor.withAlpha(255),Color(0x00000000),Color(0x00000000),lightColor.withAlpha(255)],
+                            stops: [0.0, 0.2, 0.8, 1],
+                            transform: GradientRotation(secondsRadialRotation),
+                          ).createShader(Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight));
+                        },
+                        child: Container(
+                            width: constraints.maxWidth,
+                            height: constraints.maxHeight,
+                            child: Stack(children: <Widget>[
+                              Positioned(
+                                bottom:0,
+                                left: 0,
+                                right: 0,
+                                child: Padding(
+                                    padding: const EdgeInsets.all(32),
+                                    child: Text(_location, textAlign: TextAlign.left, style: textTheme.caption)
+                                ),
+                              ),
+                              Positioned(
+                                top:0,
+                                right: 0,
+                                child: Padding(
+                                    padding: const EdgeInsets.all(32),
+                                    child: Text(_weather, textAlign: TextAlign.right, style: textTheme.caption),
+                                )
+                              ),
+                            ],
+                            )
+                        )
+                    )
+                ),
+                Positioned(
+                    child:
+                    ShaderMask(
+                      blendMode: BlendMode.srcIn,
+                        shaderCallback: (Rect bounds) {
+                          return SweepGradient(
+                            colors: [darkColor.withAlpha(255),Color(0x00000000),Color(0x00000000),lightColor.withAlpha(255)],
+                            stops: [0.1, 0.3, 0.7, 0.9],
+                            transform: GradientRotation(secondsRadialRotation),
+                          ).createShader(Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight));
+                        },
+                        child: Container(
+                            width: constraints.maxWidth,
+                            height: constraints.maxHeight,
+                            child: Stack(children: <Widget>[
+                              Positioned(
+                                top:0,
+                                left: 0,
+                                child: Padding(
+                                    padding: const EdgeInsets.all(32),
+                                    child: Text(_time, textAlign: TextAlign.left, style: textTheme.subhead)
+                                ),
+                              ),
+                              Positioned(
+                                bottom:0,
+                                right: 0,
+                                child: Padding(
+                                    padding: const EdgeInsets.all(32),
+                                    child: Text(_time, textAlign: TextAlign.right, style: textTheme.subhead)
+                                ),
+                              ),
+                            ],
+                            )
+                        )
+                    )
+                ),
+//                Positioned(
+//                    child:
+//                    ShaderMask(
+//                        shaderCallback: (Rect bounds) {
+//                          return SweepGradient(
+//                            colors: [Color(0x00AAD6C3),Color(0xFFFFFFFF),Color(0xFFFFFFFF),Color(0x00021226)],
+//                            stops: [0.05, 0.35, 0.65, 0.95],
+//                            transform: GradientRotation(secondsRadialRotation),
+//                          ).createShader(Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight));
+//                        },
+//                        child: Container(
+//                            width: constraints.maxWidth,
+//                            height: constraints.maxHeight,
+//                            child: Stack(children: <Widget>[
+//                              Center(child: Text(_time, textAlign: TextAlign.center, style: textTheme.title))
+//                            ],
+//                            )
+//                        )
+//                    )
+//                ),
+              ],
+              ),
+            );
+          },
         )
     );
   }

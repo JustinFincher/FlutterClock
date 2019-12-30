@@ -19,6 +19,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   fonts:
+    - family: IBM Plex Sans Condensed
+      fonts:
+        - asset: assets/fonts/IBM-Plex-Sans-Condensed/IBMPlexSansCondensed-ExtraLight.ttf
     - family: IBM Plex Mono
       fonts:
         - asset: assets/fonts/IBM-Plex-Mono/IBMPlexMono-Bold.ttf
