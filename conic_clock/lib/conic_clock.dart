@@ -42,7 +42,9 @@ class _ConicClockState extends State<ConicClock> {
   double _weatherColorOffsetTargetS = 0;
   double _weatherColorOffsetTargetV = 0;
 
-//  double _tempColorTargetH = 0;
+  double _tempColorOffsetS = 0;
+  double _tempColorOffsetTargetS = 0;
+
 //  Color lightColor = Color(0xffD6AABB);
 //  Color midColor = Color(0xff5798FF);
 //  Color darkColor = Color(0xffFF007A);
@@ -115,6 +117,18 @@ class _ConicClockState extends State<ConicClock> {
           _weatherColorOffsetTargetV = 0;
           break;
       }
+
+      double currentTemp = 0;
+      switch (widget.model.unit)
+      {
+        case TemperatureUnit.celsius:
+          currentTemp = widget.model.temperature;
+          break;
+        case TemperatureUnit.fahrenheit:
+          currentTemp = (widget.model.temperature - 32.0) * 5.0 / 9.0;
+          break;
+      }
+      _tempColorOffsetTargetS = atan(currentTemp - 10.0) / radians(90) * 0.1;
     });
   }
 
@@ -149,23 +163,25 @@ class _ConicClockState extends State<ConicClock> {
       //  thunderstorm,H+ S+ V-
       //  windy,       H+ S- V=
       //
-      //  temp up H for Red
-      //  temp down H for Blue
+      //  temp up S+
+      //  temp down S-
 
       _weatherColorOffsetH = lerpDouble(_weatherColorOffsetH, _weatherColorOffsetTargetH, 0.001);
       _weatherColorOffsetS = lerpDouble(_weatherColorOffsetS, _weatherColorOffsetTargetS, 0.001);
       _weatherColorOffsetV = lerpDouble(_weatherColorOffsetV, _weatherColorOffsetTargetV, 0.001);
 
+      _tempColorOffsetS = lerpDouble(_tempColorOffsetS, _tempColorOffsetTargetS, 0.001);
+
       double lightColorH = _checkColorH((cos(dayProgress * radians(360) + _weatherColorOffsetH)) * 360.0);
-      double lightColorS = _checkColorS(0.15 + (sin(dayProgress * radians(360)) + _weatherColorOffsetS) * 0.1);
+      double lightColorS = _checkColorS(0.15 + (sin(dayProgress * radians(360)) + _weatherColorOffsetS + _tempColorOffsetS) * 0.1);
       double lightColorV = _checkColorV(0.7 + 0.3 * (sin(dayProgress * radians(180)) + _weatherColorOffsetV));
 
-      double midColorH = _checkColorH((sin(dayProgress * radians(1080)) + _weatherColorOffsetH) * 30.0 + 240);
-      double midColorS = _checkColorS(0.7 + 0.2 * (sin(dayProgress * radians(720)) + _weatherColorOffsetS));
+      double midColorH = _checkColorH((sin(dayProgress * radians(1080)) + _weatherColorOffsetH) * 30.0 + 230);
+      double midColorS = _checkColorS(0.7 + 0.2 * (sin(dayProgress * radians(720)) + _weatherColorOffsetS + _tempColorOffsetS));
       double midColorV = _checkColorV(0.7 + 0.2 * (sin(dayProgress * radians(180)) + _weatherColorOffsetV));
 
       double darkColorH = _checkColorH(((cos(dayProgress * radians(360)) * 0.5 + 0.2) % 1.0 + _weatherColorOffsetH) * 360.0);
-      double darkColorS = _checkColorS(0.8 + _weatherColorOffsetS);
+      double darkColorS = _checkColorS(0.8 + _weatherColorOffsetS + _tempColorOffsetS);
       double darkColorV = _checkColorV(0.25 + 0.2 * (sin(dayProgress * radians(720)) + _weatherColorOffsetV));
 
       _lightColor = HSVColor.fromAHSV(1.0,lightColorH, lightColorS, lightColorV).toColor();
