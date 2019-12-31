@@ -30,9 +30,19 @@ class _ConicClockState extends State<ConicClock> {
   var _lightYearMode = false; // debug flag to see fast time lapse
   Timer _timer;
 
-  Color lightColor = Color(0xffAAD6C3); // sun/moon color
-  Color midColor = Color(0xff044B72);  // sky color
-  Color darkColor = Color(0xff021226); // ground color
+  Color _lightColor = Color(0xffAAD6C3); // sun/moon color
+  Color _midColor = Color(0xff044B72);  // sky color
+  Color _darkColor = Color(0xff021226); // ground color
+
+  double _weatherColorOffsetH = 0;
+  double _weatherColorOffsetS = 0;
+  double _weatherColorOffsetV = 0;
+
+  double _weatherColorOffsetTargetH = 0;
+  double _weatherColorOffsetTargetS = 0;
+  double _weatherColorOffsetTargetV = 0;
+
+//  double _tempColorTargetH = 0;
 //  Color lightColor = Color(0xffD6AABB);
 //  Color midColor = Color(0xff5798FF);
 //  Color darkColor = Color(0xffFF007A);
@@ -66,36 +76,101 @@ class _ConicClockState extends State<ConicClock> {
     setState(() {
       _halfDay = !widget.model.is24HourFormat;
       _weather = '${widget.model.temperatureString} (${widget.model.low}-${widget.model.high})' + '\n' + widget.model.weatherString.toUpperCase();
+      
+      switch(widget.model.weatherCondition)
+      {
+        case WeatherCondition.cloudy:
+          _weatherColorOffsetTargetH = 0;
+          _weatherColorOffsetTargetS = -0.2;
+          _weatherColorOffsetTargetV = -0.1;
+          break;
+        case WeatherCondition.foggy:
+          _weatherColorOffsetTargetH = 0;
+          _weatherColorOffsetTargetS = -0.1;
+          _weatherColorOffsetTargetV = 0;
+          break;
+        case WeatherCondition.rainy:
+          _weatherColorOffsetTargetH = 0;
+          _weatherColorOffsetTargetS = 0.2;
+          _weatherColorOffsetTargetV = -0.2;
+          break;
+        case WeatherCondition.snowy:
+          _weatherColorOffsetTargetH = 0;
+          _weatherColorOffsetTargetS = -0.6;
+          _weatherColorOffsetTargetV = 0.1;
+          break;
+        case WeatherCondition.sunny:
+          _weatherColorOffsetTargetH = 0;
+          _weatherColorOffsetTargetS = 0.4;
+          _weatherColorOffsetTargetV = 0.3;
+          break;
+        case WeatherCondition.thunderstorm:
+          _weatherColorOffsetTargetH = 0.1;
+          _weatherColorOffsetTargetS = 0.4;
+          _weatherColorOffsetTargetV = -0.8;
+          break;
+        case WeatherCondition.windy:
+          _weatherColorOffsetTargetH = 0.05;
+          _weatherColorOffsetTargetS = -0.1;
+          _weatherColorOffsetTargetV = 0;
+          break;
+      }
     });
+  }
+
+  double _checkColorH(double h)
+  {
+    return min(max(0,h),360);
+  }
+  double _checkColorS(double h)
+  {
+    return min(max(0,h),1);
+  }
+  double _checkColorV(double h)
+  {
+    return min(max(0,h),1);
   }
 
   void _updateTime() {
     setState(() {
       _now = !_lightYearMode ? DateTime.now() : DateTime.fromMillisecondsSinceEpoch((DateTime.now().millisecondsSinceEpoch * 4000).toInt());
       double dayProgress = (_now.hour * 60*60*1000 + _now.minute * 60*1000 + _now.second * 1000 + _now.millisecond) / (24*60*60*1000);
-//      print(dayProgress);
       //                0 midnight - 0.25 sunrise - 0.5 noon - 0.75 sunset - 1 midnight
       // sun/moon color pale green - pale yellow - pale red - pale pink - pale blue : pale color, weak
       // sky color      mid cyan - mid orange - pale blue - mid orange - mid cyan : vibrant color, primary
       // ground color   dark blue - mid red - light white - mid red - dark blue : bold color, contrast
 
       // weather & temp effect
-      // TBD
+      //  cloudy,      H= S- V-
+      //  foggy,       H= S- V=
+      //  rainy,       H= S+ V-
+      //  snowy,       H= S- V+
+      //  sunny,       H= S+ V+
+      //  thunderstorm,H+ S+ V-
+      //  windy,       H+ S- V=
+      //
+      //  temp up H for Red
+      //  temp down H for Blue
 
-      double lightColorH = (cos(dayProgress * radians(360)) % 1.0) * 360.0;
-      double lightColorS = 0.12 + (sin(dayProgress * radians(360)) % 1.0) * 0.05;
-      double lightColorV = 0.9;
-      lightColor = HSVColor.fromAHSV(1.0,lightColorH, lightColorS, lightColorV).toColor();
+      _weatherColorOffsetH = lerpDouble(_weatherColorOffsetH, _weatherColorOffsetTargetH, 0.001);
+      _weatherColorOffsetS = lerpDouble(_weatherColorOffsetS, _weatherColorOffsetTargetS, 0.001);
+      _weatherColorOffsetV = lerpDouble(_weatherColorOffsetV, _weatherColorOffsetTargetV, 0.001);
 
-      double midColorH = sin(dayProgress * radians(1080)) * 30.0 + 220;
-      double midColorS = 0.7 + 0.2 * sin(dayProgress * radians(720));
-      double midColorV = 1.0;
-      midColor = HSVColor.fromAHSV(1.0,midColorH, midColorS, midColorV).toColor();
+      double lightColorH = _checkColorH((cos(dayProgress * radians(360) + _weatherColorOffsetH)) * 360.0);
+      double lightColorS = _checkColorS(0.15 + (sin(dayProgress * radians(360)) + _weatherColorOffsetS) * 0.1);
+      double lightColorV = _checkColorV(0.7 + 0.3 * (sin(dayProgress * radians(180)) + _weatherColorOffsetV));
 
-      double darkColorH = ((dayProgress * 2.0 - 0.4) % 1.0) * 360.0;
-      double darkColorS = ((0.5 - dayProgress).abs() * 1.2) % 1.0;
-      double darkColorV = 0.15 + 0.1 * (sin(dayProgress * radians(360)));
-      darkColor = HSVColor.fromAHSV(1.0,darkColorH, darkColorS, darkColorV).toColor();
+      double midColorH = _checkColorH((sin(dayProgress * radians(1080)) + _weatherColorOffsetH) * 30.0 + 240);
+      double midColorS = _checkColorS(0.7 + 0.2 * (sin(dayProgress * radians(720)) + _weatherColorOffsetS));
+      double midColorV = _checkColorV(0.7 + 0.2 * (sin(dayProgress * radians(180)) + _weatherColorOffsetV));
+
+      double darkColorH = _checkColorH(((cos(dayProgress * radians(360)) * 0.5 + 0.2) % 1.0 + _weatherColorOffsetH) * 360.0);
+      double darkColorS = _checkColorS(0.8 + _weatherColorOffsetS);
+      double darkColorV = _checkColorV(0.25 + 0.2 * (sin(dayProgress * radians(720)) + _weatherColorOffsetV));
+
+      _lightColor = HSVColor.fromAHSV(1.0,lightColorH, lightColorS, lightColorV).toColor();
+      _midColor = HSVColor.fromAHSV(1.0,midColorH, midColorS, midColorV).toColor();
+      _darkColor = HSVColor.fromAHSV(1.0,darkColorH, darkColorS, darkColorV).toColor();
 
       _location = DateFormat.MMMd().format(_now) + '\n' + widget.model.location;
       _time = _halfDay ? DateFormat("hh:mm a").format(_now) : DateFormat("HH:mm").format(_now);
@@ -145,7 +220,7 @@ class _ConicClockState extends State<ConicClock> {
             return Container(
               decoration: BoxDecoration(
                   gradient: SweepGradient(
-                    colors: [lightColor.withAlpha(255), midColor.withAlpha(255), darkColor.withAlpha(255)],
+                    colors: [_lightColor.withAlpha(255), _midColor.withAlpha(255), _darkColor.withAlpha(255)],
                     stops: [0.0 + radialRotationSin * 0.0001, 0.5, 1],
                     transform: GradientRotation(radialRotation),
                   )
@@ -157,7 +232,7 @@ class _ConicClockState extends State<ConicClock> {
                     ShaderMask(
                         shaderCallback: (Rect bounds) {
                           return SweepGradient(
-                            colors: [darkColor.withAlpha(255),Color(0x00000000),Color(0x00000000),lightColor.withAlpha(255)],
+                            colors: [_darkColor.withAlpha(255),Color(0x00000000),Color(0x00000000),_lightColor.withAlpha(255)],
                             stops: [0.0, 0.2, 0.8, 1],
                             transform: GradientRotation(radialRotation),
                           ).createShader(Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight));
@@ -194,7 +269,7 @@ class _ConicClockState extends State<ConicClock> {
                       blendMode: BlendMode.srcIn,
                         shaderCallback: (Rect bounds) {
                           return SweepGradient(
-                            colors: [darkColor.withAlpha(255),Color(0x00000000),Color(0x00000000),lightColor.withAlpha(255)],
+                            colors: [_darkColor.withAlpha(255),Color(0x00000000),Color(0x00000000),_lightColor.withAlpha(255)],
                             stops: [0.1, 0.3, 0.7, 0.9],
                             transform: GradientRotation(radialRotation),
                           ).createShader(Rect.fromLTWH(0, 0, constraints.maxWidth, constraints.maxHeight));
