@@ -1,11 +1,12 @@
 ![](images/banner.jpeg)
 
-# Coinc Clock
+# Conic Clock
 
-> Coinc Clock is a dynamic clock written in Flutter. It is a project for the [Flutter Clock challenge](https://flutter.dev/clock).  
+> Conic Clock is a dynamic clock written in Flutter. It is a project by me (ZHENG HAOTIAN / Justin Fincher) for the [Flutter Clock challenge](https://flutter.dev/clock). 
 
-The coinc shadow presents seconds. On top left and bottom right there would be hours and minutes, while on top right there is the weather and bottom left the location.  
-The color scheme would change depending on the time, weather, and temperature.
+The conic shadow angle presents seconds. On top left and bottom right there would be hours and minutes, while on top right there is the weather and bottom left the location.  
+The color scheme would change depending on the time, weather, and temperature. For example, at 6:00 it would be sunrise (pink + pale blue), in rainstorm weather it would be darker, at a high temperature color would be more vibrant, etc.  
+Please see the Youtube video below for more info.
 
 # Youtube
 
@@ -24,3 +25,7 @@ The color scheme would change depending on the time, weather, and temperature.
 |08:20|Clear|![](images/7.jpeg)|
 |12:12|Clear|![](images/8.jpeg)|
 |15:23|Clear|![](images/9.jpeg)|
+
+# Tips
+
+For debugging, [conic_clock.dart](conic_clock/lib/conic_clock.dart) has a property called `_lightYearMode`. Use it as a time lapse toggle, time would be 3000x faster than normally it would be.
